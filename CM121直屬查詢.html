@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直屬學弟妹聯繫資訊查詢</title>
+<style>
+    body { font-family: Arial, sans-serif; margin:0; padding:20px; text-align:center; background-color:#ffffff; }
+    h2 { margin-bottom: 20px; }
+    .input-section { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:10px; }
+    input { padding:8px; width:250px; max-width:90%; text-align:center; }
+    button { padding:8px 16px; cursor:pointer; }
+    #message { margin:10px 0; color:red; font-weight:bold; }
+
+    /* 桌面表格 */
+    table { border-collapse: collapse; width:90%; margin:20px auto; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+    th { background-color:#f4f4f4; }
+    tr:hover { background-color:#f9f9f9; }
+    #resultTable { display:none; }
+    #clearBtn { display:none; margin-top:10px; }
+
+    /* 手機版卡片 */
+    @media (max-width:768px){
+        body{padding:0; margin:0;}
+        .input-section{width:100%; padding:10px; box-sizing:border-box;}
+        input{width:90%; max-width:400px;}
+        table, thead, tbody, tr, td { display:block; width:100%; }
+        thead{display:none;}
+        tr{margin-bottom:15px; border-radius:8px; padding:12px 12px; max-width:95%; margin-left:auto; margin-right:auto; box-sizing:border-box; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+        td{padding:6px 0 6px 8px; text-align:left; display:flex; flex-direction:column; border-bottom:1px solid #eee; word-wrap:break-word;}
+        td:last-child{border-bottom:none;}
+        td::before{content:attr(data-label); font-weight:bold; margin-bottom:4px; display:block; padding-left:0;}
+        #resultTable{margin:0;}
+    }
+</style>
+</head>
+<body>
+
+<h2>直屬學弟妹聯繫資訊查詢</h2>
+
+<div class="input-section">
+    <input type="text" id="studentId" placeholder="輸入您的學號">
+    <input type="text" id="studentName" placeholder="輸入您的姓名">
+    <button onclick="searchData()">查詢</button>
+</div>
+
+<div id="message"></div>
+
+<table id="resultTable">
+    <thead>
+        <tr>
+            <th>學弟妹學號</th>
+            <th>學弟妹姓名(性別)</th>
+            <th>電話</th>
+            <th>Email</th>
+            <th>Line匿名社群暱稱</th>
+            <th>備註</th>
+        </tr>
+    </thead>
+    <tbody id="resultBody"></tbody>
+</table>
+
+<button id="clearBtn" onclick="clearData()">清除查詢</button>
+
+<script>
+const directory = [
+    { mentorId: "B1305001", mentorName: "林庭暉", juniorId: "B1405001", juniorName: "林沂臻", gender: "女", phone: "0910827913", email: "ichenlin55@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305002", mentorName: "刁禹呈", juniorId: "B1405002", juniorName: "吳承諭", gender: "男", phone: "0905537548", email: "-", line: "愛玉", notes: "-" },
+    { mentorId: "B1305003", mentorName: "林珉安", juniorId: "B1405003", juniorName: "胡佑慈", gender: "女", phone: "0963762702", email: "yutzuhu960201@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305004", mentorName: "林芳睿", juniorId: "B1405004", juniorName: "王茗歆", gender: "女", phone: "0982960728", email: "a221606@cmu.edu.tw", line: "-", notes: "Email為父親的" },
+    { mentorId: "B1305005", mentorName: "柳佳佑", juniorId: "B1405005", juniorName: "李豐秀", gender: "男", phone: "0935604615", email: "austin0310@gmail.com", line: "-", notes: "電話為母親手機" },
+    { mentorId: "B1305006", mentorName: "江倍伸", juniorId: "B1405006", juniorName: "莊秉庠", gender: "男", phone: "0958546136", email: "eric.chuang0407@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305007", mentorName: "余祐霆", juniorId: "B1405007", juniorName: "徐宇辰", gender: "男", phone: "0913005062", email: "a0913005062@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305008", mentorName: "常晉瑋", juniorId: "B1405008", juniorName: "蔡汶錡", gender: "女", phone: "0928877669", email: "s11110349@stu.hlgs.hlc.edu.tw", line: "7", notes: "-" },
+    { mentorId: "B1305009", mentorName: "楊詠晴", juniorId: "B1405009", juniorName: "張廷熊", gender: "男", phone: "0939002385", email: "d123117155@gmail.com", line: "張廷熊", notes: "-" },
+    { mentorId: "B1305010", mentorName: "辛冠穎", juniorId: "B1405010", juniorName: "蔡明玉", gender: "女", phone: "0972843894", email: "lks912100205@ntnu.edu.tw", line: "-", notes: "-" },
+    { mentorId: "B1305011", mentorName: "孫浥修", juniorId: "B1405011", juniorName: "胡睿宇", gender: "男", phone: "0921022319", email: "ca571007@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305012", mentorName: "吳宇庭", juniorId: "B1405012", juniorName: "林子為", gender: "男", phone: "0938728605", email: "110007@lzsh.tc.edu.tw", line: "FMA/中醫", notes: "-" },
+    { mentorId: "B1305013", mentorName: "鐘彥博", juniorId: "B1405013", juniorName: "游恩宇", gender: "男", phone: "0921136876", email: "teresachen0302@yahoo.com.tw", line: "-", notes: "-" },
+    { mentorId: "B1305014", mentorName: "陳玠宇", juniorId: "B1405014", juniorName: "黃詠歆", gender: "女", phone: "0913002889", email: "yongxin205@gmail.com", line: "xin", notes: "電話為父親手機" },
+    { mentorId: "B1305015", mentorName: "沈以竹", juniorId: "B1405015", juniorName: "鄧福寬", gender: "男", phone: "0901013512", email: "jackyjackyteng99@gmail.com", line: "等付款", notes: "電話為父親手機" },
+    { mentorId: "B1305016", mentorName: "簡睿彤", juniorId: "B1405016", juniorName: "郭城瑋", gender: "男", phone: "0982061937", email: "110137@lmsh.tn.edu.tw", line: "阿瑋", notes: "-" },
+    { mentorId: "B1305017", mentorName: "楊晉睿", juniorId: "B1405017", juniorName: "汪書靖", gender: "女", phone: "0984319212", email: "minniewang1228@gmail.com", line: "巴巴托斯的忠實信徒", notes: "不見得會來唸，還在考慮中" },
+    { mentorId: "B1305018", mentorName: "李念霙", juniorId: "B1405018", juniorName: "宋晟瑋", gender: "男", phone: "0921222182", email: "xteddysungx@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305019", mentorName: "林敬羲", juniorId: "B1405019", juniorName: "潘旻駿", gender: "男", phone: "0905491557", email: "changcookie1113@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305020", mentorName: "楊雲淇", juniorId: "B1405020", juniorName: "劉祐安", gender: "男", phone: "0966496595", email: "fishdidi7272@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305021", mentorName: "羅濟恩", juniorId: "B1405021", juniorName: "吳佾昀", gender: "女", phone: "0229203852", email: "idhuang2006@ntu.edu.tw", line: "-", notes: "-" },
+    { mentorId: "B1305022", mentorName: "吳迪", juniorId: "B1405022", juniorName: "吳承諺", gender: "男", phone: "0903756260", email: "20000220danny@gmail.com", line: "CLM", notes: "-" },
+    { mentorId: "B1305023", mentorName: "徐仲英", juniorId: "B1405023", juniorName: "張晉慈", gender: "女", phone: "0931155146", email: "stevenchang920420@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305024", mentorName: "蕭葦彤", juniorId: "B1405024", juniorName: "吳道中", gender: "男", phone: "0916795242", email: "asdf0916795242@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305025", mentorName: "楊喚宇", juniorId: "B1405025", juniorName: "林威丞", gender: "男", phone: "0228718886", email: "linwc950807@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305026", mentorName: "曾薇安", juniorId: "B1405026", juniorName: "王宣勻", gender: "女", phone: "0906366963", email: "wxy88999@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305027", mentorName: "鄭羽俐", juniorId: "B1405027", juniorName: "温亞擇", gender: "男", phone: "0909076637", email: "Gyokuhare0722@gmail.com", line: "Bella", notes: "-" },
+    { mentorId: "B1305028", mentorName: "陳熠", juniorId: "B1405028", juniorName: "吳佳璇", gender: "女", phone: "0905710352", email: "d11131405@gapps.fg.tp.edu.tw", line: "哈囉阿", notes: "-" },
+    { mentorId: "B1305029", mentorName: "李宛芯", juniorId: "B1405029", juniorName: "劉樂沛", gender: "女", phone: "", email: "lowlepei190117@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1205030", mentorName: "程芳萱", juniorId: "B1405030", juniorName: "曾雋藍", gender: "男", phone: "", email: "roger5168@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305030", mentorName: "符復明", juniorId: "查無直屬", juniorName: "查無直屬", gender: "-", phone: "-", email: "-", line: "-", notes: "-" },
+    { mentorId: "B1005031", mentorName: "高振翔", juniorId: "B1405031", juniorName: "陳挺翼", gender: "男", phone: "0988466202", email: "timothy2483311@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305032", mentorName: "李成恩", juniorId: "B1405032", juniorName: "林心蕾", gender: "女", phone: "0902225391", email: "d11131907@gapps.fg.tp.edu.tw", line: "-", notes: "-" },
+    { mentorId: "B1305033", mentorName: "張程丰", juniorId: "B1405033", juniorName: "蔡謙柔", gender: "女", phone: "0987229378", email: "svtjou.1717@gmail.com", line: "柔(白色愛心)", notes: "-" },
+    { mentorId: "B1305034", mentorName: "王杏基", juniorId: "B1405034", juniorName: "莊立謙", gender: "男", phone: "0966520637", email: "xisnwb22209@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1105035", mentorName: "施永盈", juniorId: "B1405035", juniorName: "林尚萱", gender: "女", phone: "0979729256", email: "shangxuanlin0420@gmail.com", line: "Sophie/中醫", notes: "-" },
+    { mentorId: "B1205036", mentorName: "趙柏綸", juniorId: "B1405036", juniorName: "花禾芸", gender: "女", phone: "0908170811", email: "huahoyun@gmail.com", line: "花", notes: "-" },
+    { mentorId: "B1305037", mentorName: "蔡昕華", juniorId: "B1405037", juniorName: "謝昕倢", gender: "女", phone: "0931602125", email: "irishsieh940903@gmail.com", line: "(笑臉)(笑臉)", notes: "電話要多打幾次才會接" },
+    { mentorId: "B1305038", mentorName: "周柏宇", juniorId: "B1405038", juniorName: "謝宇翔", gender: "男", phone: "0902305071", email: "hs110613@students.hshs.chc.edu.tw", line: "哈基米", notes: "-" },
+    { mentorId: "B1305039", mentorName: "邱泓博", juniorId: "B1405039", juniorName: "林得欣", gender: "女", phone: "0972509868", email: "ldx071020@gmail.com", line: "L", notes: "電話為父親手機" },
+    { mentorId: "B1305040", mentorName: "李安惠", juniorId: "B1405040", juniorName: "劉羽桓", gender: "女", phone: "0970888639", email: "srpdz111@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305041", mentorName: "王心曖", juniorId: "B1405041", juniorName: "葉昀安", gender: "女", phone: "0902133230", email: "c0902133230@gmail.com", line: "-", notes: "會重考" },
+    { mentorId: "B1305042", mentorName: "吳丞桀", juniorId: "B1405042", juniorName: "王孟函", gender: "女", phone: "0972871618", email: "ar2688066@gmail.com", line: "水母", notes: "-" },
+    { mentorId: "B1305043", mentorName: "林則語", juniorId: "B1405043", juniorName: "邱典珊", gender: "女", phone: "0932180734", email: "dienshan950602@gmail.com", line: "(兩個紅色驚嘆號)", notes: "-" },
+    { mentorId: "B1305044", mentorName: "鄭名佑", juniorId: "B1405044", juniorName: "黃伊琳", gender: "女", phone: "0919037126", email: "elaine0951206@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305045", mentorName: "黃宣融", juniorId: "B1405045", juniorName: "陳天祥", gender: "男", phone: "0958531436", email: "a0958531436@gmail.com", line: "Marc Chen", notes: "-" },
+    { mentorId: "B1305046", mentorName: "林子瓔", juniorId: "B1405046", juniorName: "賴又銘", gender: "男", phone: "0931270981", email: "laiyuming0816@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305047", mentorName: "許駿騰", juniorId: "B1405047", juniorName: "羅鋐竣", gender: "男", phone: "0975360754", email: "594jim@gmail.com", line: "吉姆", notes: "-" },
+    { mentorId: "B1305048", mentorName: "王婷鈺", juniorId: "B1405048", juniorName: "蔡汎鍒", gender: "女", phone: "0987398157", email: "tsaifanjou@gmail.com", line: "dami", notes: "-" },
+    { mentorId: "B1305049", mentorName: "江旻謙", juniorId: "B1405049", juniorName: "陳昶瑜", gender: "男", phone: "0933459393", email: "rexchen050724@gmail.com", line: "生(魚)片", notes: "-" },
+    { mentorId: "B1305050", mentorName: "鄭芳筑", juniorId: "B1405050", juniorName: "林沛容", gender: "女", phone: "0938032658", email: "bb940505bb@gmail.com", line: "Pei!", notes: "-" },
+    { mentorId: "B1305051", mentorName: "張宸綾", juniorId: "B1405051", juniorName: "陳禛", gender: "女", phone: "0909374868", email: "erikchen0815@gmail.com", line: "MAX", notes: "-" },
+    { mentorId: "B1305052", mentorName: "李彥宗", juniorId: "B1405052", juniorName: "陳威呈", gender: "男", phone: "0932311941", email: "wilsonc0602@gmail.com", line: "W", notes: "電話為母親的/目前在國外，8/19返台" },
+    { mentorId: "B1305053", mentorName: "林侑杰", juniorId: "B1405053", juniorName: "吳秉洋", gender: "男", phone: "0920279110", email: "bingyang0426@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305054", mentorName: "陳品翰", juniorId: "B1405054", juniorName: "陳宥彤", gender: "女", phone: "0916405560", email: "ccy1ccy2@gmail.com", line: "-", notes: "-" },
+    { mentorId: "B1305055", mentorName: "陳彥佑", juniorId: "查無直屬", juniorName: "查無直屬", gender: "-", phone: "-", email: "-", line: "-", notes: "21號家有直屬" },
+    { mentorId: "B1305056", mentorName: "童玉函", juniorId: "查無直屬", juniorName: "查無直屬", gender: "-", phone: "-", email: "-", line: "-", notes: "15號家有直屬" },
+    { mentorId: "B1305057", mentorName: "郭羿容", juniorId: "查無直屬", juniorName: "查無直屬", gender: "-", phone: "-", email: "-", line: "-", notes: "48號家有直屬" },
+    { mentorId: "B1305056", mentorName: "童玉函", juniorId: "B1309242", juniorName: "顏伊岑", gender: "女", phone: "0912213969", email: "momo950808@gmail.com", line: "", notes: "生醫系轉系生" },
+    { mentorId: "B1305057", mentorName: "郭羿容", juniorId: "B1207011", juniorName: "龔若云", gender: "女", phone: "0958670826", email: "080392Iris@gmail.com", line: "貓", notes: "物治系轉系生" }
+];
+
+function showMessage(msg, color="red"){
+    const m=document.getElementById("message");
+    m.textContent=msg;
+    m.style.color=color;
+}
+
+function searchData(){
+    const idInput=document.getElementById("studentId").value.trim();
+    const nameInput=document.getElementById("studentName").value.trim();
+    const resultBody=document.getElementById("resultBody");
+    const table=document.getElementById("resultTable");
+    const clearBtn=document.getElementById("clearBtn");
+
+    resultBody.innerHTML="";
+    table.style.display="none";
+    clearBtn.style.display="none";
+    showMessage("");
+
+    if(!idInput || !nameInput){
+        showMessage("請輸入學號與姓名");
+        return;
+    }
+
+    const idExists=directory.some(item=>item.mentorId===idInput);
+    const nameExists=directory.some(item=>item.mentorName===nameInput);
+
+    if(!idExists && !nameExists){
+        showMessage("查無直屬學弟妹資料");
+        return;
+    }
+
+    const results=directory.filter(item=>item.mentorId===idInput && item.mentorName===nameInput);
+
+    if(results.length>0){
+        results.forEach(item=>{
+            const row=document.createElement("tr");
+            row.innerHTML=`
+                <td data-label="學弟妹學號">${item.juniorId}</td>
+                <td data-label="學弟妹姓名(性別)">${item.juniorName} (${item.gender})</td>
+                <td data-label="電話">${item.phone}</td>
+                <td data-label="Email">${item.email}</td>
+                <td data-label="Line匿名社群暱稱">${item.line}</td>
+                <td data-label="備註">${item.notes}</td>
+            `;
+            resultBody.appendChild(row);
+        });
+        table.style.display="table";
+        clearBtn.style.display="inline-block";
+    } else {
+        showMessage("查無資料，請確認學號與姓名是否輸入正確");
+    }
+}
+
+function clearData(){
+    document.getElementById("studentId").value="";
+    document.getElementById("studentName").value="";
+    document.getElementById("resultBody").innerHTML="";
+    document.getElementById("resultTable").style.display="none";
+    document.getElementById("clearBtn").style.display="none";
+    showMessage("");
+}
+</script>
+</body>
+</html>
