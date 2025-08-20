@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>關主查詢系統</title>
+<style>
+    body { font-family: Arial, sans-serif; margin:0; padding:20px; text-align:center; background-color:#ffffff; }
+    h2 { margin-bottom: 20px; }
+    .input-section { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:10px; }
+    input { padding:8px; width:250px; max-width:90%; text-align:center; }
+    button { padding:8px 16px; cursor:pointer; }
+    #message { margin:10px 0; color:red; font-weight:bold; }
+
+    /* 桌面表格 */
+    table { border-collapse: collapse; width:90%; margin:20px auto; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+    th { background-color:#f4f4f4; }
+    tr:hover { background-color:#f9f9f9; }
+    #resultTable { display:none; }
+    #clearBtn { display:none; margin-top:10px; }
+
+    /* 手機版卡片 */
+    @media (max-width:768px){
+        body{padding:0; margin:0;}
+        .input-section{width:100%; padding:10px; box-sizing:border-box;}
+        input{width:90%; max-width:400px;}
+        table, thead, tbody, tr, td { display:block; width:100%; }
+        thead{display:none;}
+        tr{margin-bottom:15px; border-radius:8px; padding:12px 12px; max-width:95%; margin-left:auto; margin-right:auto; box-sizing:border-box; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+        td{padding:6px 0 6px 8px; text-align:left; display:flex; flex-direction:column; border-bottom:1px solid #eee; word-wrap:break-word;}
+        td:last-child{border-bottom:none;}
+        td::before{content:attr(data-label); font-weight:bold; margin-bottom:4px; display:block; padding-left:0;}
+        #resultTable{margin:0;}
+    }
+</style>
+</head>
+<body>
+
+<h2>關主查詢系統</h2>
+
+<div class="input-section">
+    <input type="text" id="studentId" placeholder="輸入小隊生理男性隊輔姓名">
+    <input type="text" id="studentName" placeholder="輸入小隊生理女性隊輔姓名">
+    <button onclick="searchData()">查詢</button>
+</div>
+
+<div id="message"></div>
+
+<table id="resultTable">
+    <thead>
+        <tr>
+            <th>小隊編號</th>
+            <th>班導師位置提示</th>
+        </tr>
+    </thead>
+    <tbody id="resultBody"></tbody>
+</table>
+
+<button id="clearBtn" onclick="clearData()">清除查詢</button>
+
+<script>
+const directory = [
+    { mentorId: "羅濟恩", mentorName: "鄭芳筑", juniorId: "第1小隊", juniorName: "擋住西北雨的攻擊/卻擋不住西谷夕的自由" },
+    { mentorId: "李成恩", mentorName: "楊雲淇", juniorId: "第2小隊", juniorName: "《七步詩》的最後/但在中間忘了兩次" },
+    { mentorId: "林敬羲", mentorName: "王婷鈺", juniorId: "第3小隊", juniorName: "1：16做完了共筆/Ctrl+P獲得了一切" },
+    { mentorId: "張程丰", mentorName: "陳熠", juniorId: "第4小隊", juniorName: "《七步詩》的最後/但在中間忘了兩次" },
+    { mentorId: "江倍伸", mentorName: "鄭芳筑", juniorId: "第5小隊", juniorName: "1：16做完了共筆/Ctrl+P獲得了一切" },
+    { mentorId: "黃宣融", mentorName: "蕭葦彤", juniorId: "第6小隊", juniorName: "擋住西北雨的攻擊/卻擋不住西谷夕的自由" },
+];
+
+function showMessage(msg, color="red"){
+    const m=document.getElementById("message");
+    m.textContent=msg;
+    m.style.color=color;
+}
+
+function searchData(){
+    const idInput=document.getElementById("studentId").value.trim();
+    const nameInput=document.getElementById("studentName").value.trim();
+    const resultBody=document.getElementById("resultBody");
+    const table=document.getElementById("resultTable");
+    const clearBtn=document.getElementById("clearBtn");
+
+    resultBody.innerHTML="";
+    table.style.display="none";
+    clearBtn.style.display="none";
+    showMessage("");
+
+    if(!idInput || !nameInput){
+        showMessage("請輸入正確的隊輔姓名");
+        return;
+    }
+
+    const idExists=directory.some(item=>item.mentorId===idInput);
+    const nameExists=directory.some(item=>item.mentorName===nameInput);
+
+    if(!idExists && !nameExists){
+        showMessage("請輸入正確的隊輔姓名");
+        return;
+    }
+
+    const results=directory.filter(item=>item.mentorId===idInput && item.mentorName===nameInput);
+
+    if(results.length>0){
+        results.forEach(item=>{
+            const row=document.createElement("tr");
+            row.innerHTML=`
+                <td data-label="小隊編號">${item.juniorId}</td>
+                <td data-label="班導師位置提示">${item.juniorName} (${item.gender})</td>
+            `;
+            resultBody.appendChild(row);
+        });
+        table.style.display="table";
+        clearBtn.style.display="inline-block";
+    } else {
+        showMessage("請輸入正確的隊輔姓名");
+    }
+}
+
+function clearData(){
+    document.getElementById("studentId").value="";
+    document.getElementById("studentName").value="";
+    document.getElementById("resultBody").innerHTML="";
+    document.getElementById("resultTable").style.display="none";
+    document.getElementById("clearBtn").style.display="none";
+    showMessage("");
+}
+</script>
+</body>
+</html>
